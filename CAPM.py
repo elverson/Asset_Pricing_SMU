@@ -43,57 +43,53 @@ rf_rate = AP_project1.rf_rate
 
 
 def market_model(data_industry,data_mkt,rf):   
-    #get excess returns
-    y1 = data_industry - rf
-    x1 = data_mkt - rf
-    #fit excess returns into y axis for industrial and x axis for mkt
-    rg_exrt = LinearRegression().fit(x1,y1)
-    idt_alpha = rg_exrt.intercept_
-    idt_beta = rg_exrt.coef_    
-    rg_coefficient = pd.DataFrame(np.concatenate((idt_alpha.reshape(1,10),idt_beta.reshape(1,10))),
+    
+    RP_minus_RF = df_industry- rf_rate
+    RM_minus_RF = df_market - rf_rate
+    reg = LinearRegression().fit(RM_minus_RF, RP_minus_RF)
+    #industry beta
+    industry_beta = reg.coef_
+    #intercept
+    industry_alpha = reg.intercept_
+    market_coefficient = pd.DataFrame(np.concatenate((industry_alpha.reshape(1,10),industry_beta.reshape(1,10))),
                                        index = ['intercept coefficient','slope coefficient'],
                                        columns = data_industry.columns)
-    print(rg_coefficient)
+    print(market_coefficient)
+
+
+    mean_industry_returns = df_industry.mean()
+    mean_market_returns = df_market.mean()
+    mean_industry_plus_mkt_returns = np.concatenate((mean_industry_returns, mean_market_returns),axis=0)
     
-    #regress mean    
-    #mean market
-    mean_mkt = np.array(data_mkt.mean())
-    #mean of 10 industry
-    mean_industry = np.array(data_industry.mean())
-    #mean of market + industry
-    mean_mkt_industry = np.concatenate((mean_mkt, mean_industry), axis=0)
-    mean_mkt_industry = np.concatenate((mean_industry, mean_mkt), axis=0)
-    #change to 11 by 1 array
-    mean_mkt_industry = mean_mkt_industry.reshape(11,1)
-    #hardcode beta array
-    mkt_beta = [[1]]
-    #beta of market + industry
-    mkt_idt_beta = np.concatenate((mkt_beta, idt_beta), axis=0)
-    mkt_idt_beta = np.concatenate((idt_beta, mkt_beta), axis=0)
-    #regresssion of market+mean over market beta+industry beta
-    rg_sml = LinearRegression().fit(mkt_idt_beta,mean_mkt_industry)    
-    #sml intercept
-    intercept_SML = rg_sml.intercept_
-    #sml slope
-    slope_SML = rg_sml.coef_    
-    print("")
-    print("sml intercept:", intercept_SML)
-    print("sml slope:",slope_SML)
-
-
-    #plot graph
-    plt.scatter(mkt_beta,mean_mkt,c='r',label='Industry Portfolios')
-    plt.scatter(idt_beta,mean_industry,c='g',label='Market Portfolio')
-
+    market_beta = [[1]]
+    mean_industry_plus_market_beta = np.concatenate((industry_beta, market_beta),axis=0)    
+    reg_sml = LinearRegression().fit(mean_industry_plus_market_beta, mean_industry_plus_mkt_returns)
+    reg_sml_coefficient_slope = reg_sml.coef_
+    #intercept
+    reg_sml_intercept = reg_sml.intercept_    
+    print("sml intecept:",reg_sml_intercept)
+    print("sml slope:",reg_sml_coefficient_slope[0])
+    
+    
+    def my_range(start, end, step):
+        while start <= end:
+            yield start
+            start += step
     yaxis = []
-    xaxis = []    
-    betas = [x/10 for x in range(21)]
-    assetReturns = [slope_SML[0][0]*x + intercept_SML[0] for x in betas]
-    plt.plot(betas,assetReturns)
+    xaxis = []
+    for x in my_range(0, 2.1, 0.1):
+        stdplot = reg_sml_coefficient_slope*x + reg_sml_intercept
+        xaxis += [x]
+        yaxis += [stdplot]
+    plt.plot(xaxis,yaxis) 
     plt.xlabel("Beta")
-    plt.ylabel("Industrial Mean Return")
+    plt.ylabel("Returns")
     plt.title("Security Market Line")
-        
+    plt.scatter(market_beta,mean_market_returns,c='r',label='Industry Portfolios')
+    plt.scatter(industry_beta,mean_industry_returns,c='g',label='Market Portfolio')
+
+    
+    
 market_model(df_industry,df_market,rf_rate)
 
 
