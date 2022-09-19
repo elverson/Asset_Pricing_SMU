@@ -35,42 +35,51 @@ df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset 
 AP_project1
 
 #declaration
-length = 10 #linear regression needs to be 10
-vector_mean = AP_project1.vector_mean
-x = vector_mean
+#risk-free rate
 rf_rate = AP_project1.rf_rate
 
 
 
 def market_model(data_industry,data_mkt,rf):   
-    
+    #first part is capm model    
+    #portfolio risk premium
     RP_minus_RF = df_industry- rf_rate
+    #market risk premium
     RM_minus_RF = df_market - rf_rate
+    #regress portfolio premium over market premium
     reg = LinearRegression().fit(RM_minus_RF, RP_minus_RF)
-    #industry beta
+    #industry beta which is the slope
     industry_beta = reg.coef_
-    #intercept
+    #intercept which is the alpha
     industry_alpha = reg.intercept_
+    #create table of alpha and beta of 10 industries.
     market_coefficient = pd.DataFrame(np.concatenate((industry_alpha.reshape(1,10),industry_beta.reshape(1,10))),
                                        index = ['intercept coefficient','slope coefficient'],
                                        columns = data_industry.columns)
     print(market_coefficient)
 
-
+    #this part is security market line
+    #average return of each of the 10 industrial portfolios
     mean_industry_returns = df_industry.mean()
+    #average return of the market returns
     mean_market_returns = df_market.mean()
+    #total average returns of portfolio and market
     mean_industry_plus_mkt_returns = np.concatenate((mean_industry_returns, mean_market_returns),axis=0)
-    
+    #market beta= 1
     market_beta = [[1]]
+    #10 industry beta + 1 market beta
     mean_industry_plus_market_beta = np.concatenate((industry_beta, market_beta),axis=0)    
+    #regress average portfolio + market returns over average portfolio + market betas
     reg_sml = LinearRegression().fit(mean_industry_plus_market_beta, mean_industry_plus_mkt_returns)
+    #beta of sml
     reg_sml_coefficient_slope = reg_sml.coef_
-    #intercept
+    #alpha of sml
     reg_sml_intercept = reg_sml.intercept_    
     print("sml intecept:",reg_sml_intercept)
     print("sml slope:",reg_sml_coefficient_slope[0])
     
-    
+    #plot sml
+    #for loop over 0-2 x axis with constant of m and c    
     def my_range(start, end, step):
         while start <= end:
             yield start
