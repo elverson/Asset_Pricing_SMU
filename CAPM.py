@@ -32,45 +32,62 @@ df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset 
 #df2 = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\python\\asset_pricing_project\\Project2\\Market_Portfolio.xlsx')
 
 #Reload modules: asset_pricing_efficient_frontier_enhanced
-AP_project1
+#AP_project1
 
 #declaration
-length = 10 #linear regression needs to be 10
-vector_mean = AP_project1.vector_mean
-x = vector_mean
-rf_rate = AP_project1.rf_rate
+#risk-free rate
+#rf_rate = AP_project1.rf_rate
+rf_rate = 0.13
 
 
 
 def market_model(data_industry,data_mkt,rf):   
-    
+    #first part is capm model    
+    #portfolio risk premium
     RP_minus_RF = df_industry- rf_rate
+    #market risk premium
     RM_minus_RF = df_market - rf_rate
+    #regress portfolio premium over market premium
     reg = LinearRegression().fit(RM_minus_RF, RP_minus_RF)
-    #industry beta
+    #industry beta which is the slope
     industry_beta = reg.coef_
-    #intercept
+    #intercept which is the alpha
     industry_alpha = reg.intercept_
-    market_coefficient = pd.DataFrame(np.concatenate((industry_alpha.reshape(1,10),industry_beta.reshape(1,10))),
-                                       index = ['intercept coefficient','slope coefficient'],
-                                       columns = data_industry.columns)
-    print(market_coefficient)
+    #create table of alpha and beta of 10 industries.
+    industry_market_coefficient = pd.DataFrame(np.concatenate((industry_alpha.reshape(10,1),industry_beta.reshape(10,1)),axis=1),
+                                               index = data_industry.columns,
+                                               columns = ['intercept coefficient','slope coefficient'] )
+    
 
+    print(tabulate(industry_market_coefficient, headers = 'keys', tablefmt = 'psql'))
 
+    #this part is security market line
+    #average return of each of the 10 industrial portfolios
     mean_industry_returns = df_industry.mean()
+    #average return of the market returns
     mean_market_returns = df_market.mean()
+    #total average returns of portfolio and market
     mean_industry_plus_mkt_returns = np.concatenate((mean_industry_returns, mean_market_returns),axis=0)
-    
+    #print mean returns of industry and market
+    index_mkt_industry = data_industry.columns.insert(10, 'Market')
+    mean_industry_plus_mkt_returns_print = pd.DataFrame(mean_industry_plus_mkt_returns.reshape(11,1), index = index_mkt_industry, 
+                                                        columns=['Mean Returns'])
+    print(tabulate(mean_industry_plus_mkt_returns_print,headers='keys',tablefmt='psql'))
+    #market beta= 1
     market_beta = [[1]]
+    #10 industry beta + 1 market beta
     mean_industry_plus_market_beta = np.concatenate((industry_beta, market_beta),axis=0)    
+    #regress average portfolio + market returns over average portfolio + market betas
     reg_sml = LinearRegression().fit(mean_industry_plus_market_beta, mean_industry_plus_mkt_returns)
+    #beta of sml
     reg_sml_coefficient_slope = reg_sml.coef_
-    #intercept
+    #alpha of sml
     reg_sml_intercept = reg_sml.intercept_    
-    print("sml intecept:",reg_sml_intercept)
-    print("sml slope:",reg_sml_coefficient_slope[0])
+    print("sml intecept coefficient:",reg_sml_intercept)
+    print("sml slope coefficient:",reg_sml_coefficient_slope[0])
     
-    
+    #plot sml
+    #for loop over 0-2 x axis with constant of m and c    
     def my_range(start, end, step):
         while start <= end:
             yield start
@@ -83,7 +100,7 @@ def market_model(data_industry,data_mkt,rf):
         yaxis += [stdplot]
     plt.plot(xaxis,yaxis) 
     plt.xlabel("Beta")
-    plt.ylabel("Returns")
+    plt.ylabel("Expected Returns")
     plt.title("Security Market Line")
     plt.scatter(market_beta,mean_market_returns,c='r',label='Industry Portfolios')
     plt.scatter(industry_beta,mean_industry_returns,c='g',label='Market Portfolio')
