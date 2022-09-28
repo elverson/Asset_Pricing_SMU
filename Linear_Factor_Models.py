@@ -82,8 +82,6 @@ def downside_risk(mean_returns_industries_excess_returns,excess_market_return):
 
 #wrong answers
 def sortino_ratio(rp_minus_rf,rm_minus_rf):
-    print(rm_minus_rf)
-    print(rp_minus_rf)
     down_risk = np.mean(np.minimum(rp_minus_rf,0)**2)
     sortino = np.mean(rp_minus_rf)/np.sqrt(down_risk)
     sortino = np.array(sortino)
@@ -94,7 +92,7 @@ def jenson_alpha(mean_returns_industries_excess_returns,excess_market_return):
     mean_returns_industries_excess_returns = pd.DataFrame(mean_returns_industries_excess_returns)
     excess_market_return = pd.DataFrame(excess_market_return)
     reg = LinearRegression().fit(excess_market_return, mean_returns_industries_excess_returns)
-    #beta = reg.coef_
+    beta = reg.coef_
     alpha = reg.intercept_
     # print(alpha.ndim)
     alpha = alpha.reshape(10,1)
@@ -115,41 +113,41 @@ def three_factor_alpha(market_risk,SMB,HML,portfolio_excess_returns):
     alpha = alpha.reshape(10,1)
     return alpha
 
-def treynor_ratio(CAPM_beta, mean_excess_return):
-    mean_excess_return = mean_excess_return.reshape(10,1)
-    treynor_ratio = np.divide(mean_excess_return,CAPM_beta)
+def treynor_ratio(excess_market_return,excess_returns):
+    all_port_excess_returns = pd.DataFrame(excess_returns)
+    excess_market_return = pd.DataFrame(excess_market_return)
+    reg = LinearRegression().fit(excess_market_return,all_port_excess_returns)
+    beta = reg.coef_
+    excess_return_mean = np.array(np.mean(excess_returns))
+    print(excess_return_mean)
+    print(beta)
+    treynor_ratio = np.divide(excess_return_mean.reshape(10,1),beta.reshape(10,1))
     return treynor_ratio
     
-
-
+        
 def plot_chart(capm_industry):
-    treynor_plot = treynor_ratio(capm_beta,std_mean_industries()[0])
+    treynor_plot = treynor_ratio(excess_market_return(df_riskfactors)[1],std_mean_industries()[2])
     jenson_alpha_plot = jenson_alpha(std_mean_industries()[2],excess_market_return(df_riskfactors)[1])
     three_factor_plot = three_factor_alpha(excess_market_return(df_riskfactors)[1],excess_market_return(df_riskfactors)[2],excess_market_return(df_riskfactors)[3],std_mean_industries()[2])
     sharpe_ratio_plot = sharpe_ratio(df_industries, df_riskfactors,
                  std_mean_industries()[0], std_mean_industries()[1])
     sortino_ratio_plot = sortino_ratio(std_mean_industries()[2],excess_market_return(df_riskfactors)[1])
-    plot_all_ratios = pd.DataFrame(np.concatenate((treynor_plot.reshape(10,1),jenson_alpha_plot.reshape(10,1), \
-                                                   three_factor_plot.reshape(10,1), sharpe_ratio_plot.reshape(10,1), sortino_ratio_plot.reshape(10,1)),axis=1), \
+    plot_all_ratios = pd.DataFrame(np.concatenate((sharpe_ratio_plot.reshape(10,1),sortino_ratio_plot.reshape(10,1), \
+                                                   treynor_plot.reshape(10,1), jenson_alpha_plot.reshape(10,1), three_factor_plot.reshape(10,1)),axis=1), \
                                                index = capm_industry.columns,
-                                               columns = ['Treynor Ratio','Jenson Alpha','Three-factor Alpha','Sharpe Ratio','Sortino Ratio'] )
-    
+                                               columns = ['Sharpe Ratio','Sortino Ratio','Treynor Ratio','Jensen\'s Alpha','Three-Factor Alpha'] )               
     print(plot_all_ratios)
+    plot_all_ratios.plot(y= ["Sharpe Ratio"], kind = "bar", color = 'red')
+    plot_all_ratios.plot(y=["Sortino Ratio"], kind = "bar", color = 'green')
+    plot_all_ratios.plot(y=['Treynor Ratio'], kind = 'bar', color = 'blue' )
+    plot_all_ratios.plot(y=["Jensen's Alpha"], kind = "bar", color = 'brown')
+    plot_all_ratios.plot(y=["Three-Factor Alpha"], kind = "bar", color = 'purple')
+    
 
 
+
+#call functions
 plot_chart(CAPM.df_industry)
-
-
-
-#treynor_ratio(capm_beta,std_mean_industries()[0])
-#jenson_alpha(std_mean_industries()[2],excess_market_return(df_riskfactors)[1])
-#three_factor_alpha(excess_market_return(df_riskfactors)[1],excess_market_return(df_riskfactors)[2],excess_market_return(df_riskfactors)[3],std_mean_industries()[2])
-#sharpe_ratio(df_industries, df_riskfactors,
-             #std_mean_industries()[0], std_mean_industries()[1])
-#sortino_ratio(std_mean_industries()[2],excess_market_return(df_riskfactors)[1])
-
-
-
     
 
     
