@@ -29,9 +29,10 @@ pd.set_option('display.width', 1000)
 
 # create dataframe
 df = pd.DataFrame()
-df = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
-df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Market_Portfolio.xlsx')
-#df = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\python\\asset_pricing_project\\project2\\Industry_Portfolios.xlsx') 
+# df = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
+# df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Market_Portfolio.xlsx')
+df = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Industry_Portfolios.xlsx') 
+df_market = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Market_Portfolio.xlsx') 
 df = df.sub(df_market['Market'],axis=0)
 d = []
 for p in df:
@@ -104,8 +105,8 @@ def print_all(sharpe_ratio,weight_final,vector_mean,df_cov,df_table_mean_std):
     print("weight of optimal portfolio")
     print(np.around(weight_final,5))
     #question1: vector of mean and covariance
-    print("vector_mean:")
-    print(vector_mean)
+    # print("vector_mean:")
+    # print(vector_mean)
     print("covariance:")
     print(df_cov)
     #question2: table with mean and std
@@ -122,30 +123,29 @@ def plot_all():
     #risk-free line(PAGE 25 lecture)
     yaxis2 = []
     xaxis2 = []
-    for x2 in my_range(rf_rate, 2.1, 0.1):
+    for x2 in my_range(rf_rate, 0.11, 0.005):
         stdplot2 = ((x2 - rf_rate)**2)/(zelta - 2*alpha*rf_rate+zelta*rf_rate*rf_rate)
         stdplot2 = math.sqrt(stdplot2)
         xaxis2 += [stdplot2]
         yaxis2 += [x2]
-    plt.plot(xaxis2,yaxis2,label="With Riskless Asset")
-    plt.xlabel("Standard deviation")
-    plt.ylabel("Returns in percentage")
+    plt.plot(xaxis2,yaxis2,label="Tangent Line")
+    plt.xlabel("Tracking Error")
+    plt.ylabel("Expected Monthly Deviation ")
     plt.legend()   
 
 
-    #efficient frontier 
-    yaxis4 = []
-    xaxis4 = []
-    for x4 in my_range(0, 2.1, 0.1):
-        stdplot4 = (1/delta) + (delta/(zelta*delta-(alpha*alpha))) * (x4 - (alpha/delta))**2
-        stdplot4 = math.sqrt(stdplot4)
-        xaxis4 += [stdplot4]
-        yaxis4 += [x4]
-    plt.plot(xaxis4,yaxis4 ,label="Without Riskless Asset")
-    plt.xlabel("Standard deviation")
-    plt.ylabel("Returns in percentage")
-    plt.title("efficient frontier")
-    plt.legend()            
+    yaxis = []
+    xaxis = []
+    for x in my_range(0, 0.11, 0.005):
+        stdplot = (1/delta) + (delta/(zelta*delta-(alpha*alpha))) * (x - (alpha/delta))**2
+        stdplot = math.sqrt(stdplot)
+        xaxis += [stdplot]
+        yaxis += [x]
+    plt.plot(xaxis,yaxis,label="minimum variance frontier")
+    plt.xlabel("Tracking Error")
+    plt.ylabel("Expected Monthly Deviation ")
+    plt.xlim(0,0.25)
+    plt.legend()           
 
 print_all(sharpe_ratio(Rtg,rf_rate,Stg),weight_portfolio(),vector_mean,df_cov,df_table_mean_std)
 plot_all()
