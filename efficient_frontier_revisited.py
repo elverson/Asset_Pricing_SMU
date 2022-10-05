@@ -37,7 +37,7 @@ df = df.sub(df_market['Market'],axis=0)
 d = []
 for p in df:
     if "Date" not in p and "date" not in p:
-        d.append((p, df[p].mean()))
+        d.append((p, df[p].mean()))     
 df_table_mean_std = pd.DataFrame(d, columns=('industry', 'expected_deviation'))
 
 
@@ -97,6 +97,8 @@ def weight_portfolio():
     weight_Rtg2 = np.reshape(weight_Rtg2, (10, 1))
     weight_Rtg3 = np.subtract(vector_mean,weight_Rtg2)
     weight_final = np.dot(weight_Rtg1,weight_Rtg3)
+    weight_pd = pd.DataFrame(data=weight_final, index = df.columns[1:11],columns=['Weight'])
+    print(weight_pd)
     return weight_final
 
 
@@ -105,8 +107,6 @@ def print_all(sharpe_ratio,weight_final,vector_mean,df_cov,df_table_mean_std):
     print("weight of optimal portfolio")
     print(np.around(weight_final,5))
     #question1: vector of mean and covariance
-    # print("vector_mean:")
-    # print(vector_mean)
     print("covariance:")
     print(df_cov)
     #question2: table with mean and std
