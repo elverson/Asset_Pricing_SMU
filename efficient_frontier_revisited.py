@@ -29,10 +29,10 @@ pd.set_option('display.width', 10000)
 
 
 # create dataframe
-# df = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
-# df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Market_Portfolio.xlsx')
-df_monthly_returns = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Industry_Portfolios.xlsx') 
-df_market = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Market_Portfolio.xlsx') 
+df_monthly_returns = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
+df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Market_Portfolio.xlsx')
+#df_monthly_returns = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Industry_Portfolios.xlsx') 
+#df_market = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Market_Portfolio.xlsx') 
 df = df_monthly_returns.sub(df_market['Market'],axis=0)
 d = []
 d_without_date = []
@@ -172,53 +172,33 @@ def monte_carlo():
     df_monthly_std2 = df_monthly_returns_np.std()
     df_monthly_std2_np = df_monthly_std2.to_numpy()
     df_monthly_std2_np = np.transpose(df_monthly_std2_np)    
-
     
     #weight x returns
     np_weight_return = matrix_weight*df_monthly_returns2_np
     df_np_weight_return = pd.DataFrame(data = np_weight_return)
+    df_np_weight_return_pt = pd.DataFrame() 
+    df_np_weight_std_pt = pd.DataFrame()     
+    df_np_weight_return_pt['portfolio_mean'] = df_np_weight_return.sum(axis=1)   
+    df_np_weight_std_pt['portfolio_std'] = df_np_weight_return.sum(axis=1)      
+    np_weight_return_portfolio = df_np_weight_return_pt['portfolio_mean'].to_numpy()                                                           
     df_np_weight_return.to_csv('df_np_weight_return.csv')
     
     #std * returns
-    np_std_return = matrix_weight*df_monthly_std2_np
+    np_std_return = matrix_weight*df_monthly_std2_np  
     df_np_std_return = pd.DataFrame(data = np_std_return)
+    #test
+    df_np_std_return['std_portfolio'] = np_std_return.max(axis=1)    
+    df_np_std_return_portfolio = df_np_std_return['std_portfolio'].to_numpy()
     df_np_std_return.to_csv('df_np_std_return.csv')
-    #alpha
-    alpha = np.matmul(vector_mean_transpose, df_cov_inverse)
-    alpha = (alpha * matrix_weight)
-
-    #zetha
-    zelta = np.matmul(vector_mean_transpose, df_cov_inverse)
-    zelta = (zelta * np_weight_return)
     
-    #delta
-    delta = np.matmul(weight_transpose, df_cov_inverse)
-    delta = (delta * matrix_weight)    
+    plt.scatter(np.array(df_np_std_return_portfolio), np.array(np_weight_return_portfolio), color='green')
     
-
-    rmv = alpha/delta
-
-
-    Rtg = (alpha * rf_rate - zelta)/(delta*rf_rate - alpha)
-    Rtg = Rtg[0][0]
-    Stg = -((zelta-2*alpha*rf_rate+delta*rf_rate*rf_rate)**0.5)/(delta*(rf_rate-rmv))
-    
-    sharpe_ratio_monte = sharpe_ratio(Rtg,rf_rate,Stg)
-    print("sharpe ratio:","\n", sharpe_ratio_monte)
-    df_sharpe_ratio_monte = pd.DataFrame(data = sharpe_ratio_monte)
-    df_sharpe_ratio_monte.to_csv('tst.csv')
-
-#    plt.axis([0, 0.5, 1, 1.5])    
-    plt.scatter(np.array(np_std_return), np.array(np_weight_return), color='green')
     # Add labels
-    plt.xlabel("X-axis")
-    plt.ylabel("Y-axis")
+    plt.xlabel("Standard Deviation")
+    plt.ylabel("Expected Returns")
     # Display
     plt.show()
     
-    
-    # fig = px.scatter(x=np.array(np_std_return[0]), y=np.array(np_weight_return[0]))
-    # fig.show()
 
     
     return df_matrix
