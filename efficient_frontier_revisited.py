@@ -5,11 +5,8 @@ Created on Thu Sep  1 14:51:26 2022
 @author: XuebinLi
 """
 
-#hardcoded part is weight at line 56
-#hardcoded part is lmda at 88
-#hardcoded part is weight_Rtg2 at 159
-
-
+import warnings
+warnings.simplefilter("ignore", UserWarning)
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,12 +18,8 @@ import pandas as pd
 from tabulate import tabulate
 from numpy.linalg import inv
 import math 
-import plotly.express as px
-np.set_printoptions(suppress=True)
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 5000)
-pd.set_option('display.width', 10000)
-
+from sklearn.linear_model import LinearRegression
+import random
 
 # create dataframe
 df_monthly_returns = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
@@ -46,6 +39,8 @@ df_table_mean_std = pd.DataFrame(d, columns=('industry', 'expected_deviation'))
 #covariance
 df_cov = df.iloc[: , 1:]
 df_cov = df_cov.cov()
+np_df_cov = df_cov.to_numpy()
+
 #vector mean
 vector_mean = df_table_mean_std[["expected_deviation"]].to_numpy() 
 # transpose of returns
@@ -76,7 +71,7 @@ delta = np.matmul(delta, weight)
 rmv = alpha/delta
 
 #riskfree_Rate
-rf_rate = 0
+rf_rate = 0.13
     
     
 #tangency portfolio
@@ -156,67 +151,36 @@ def plot_all():
 
 
 
-#monte carlo simulation
-
-def monte_carlo():
+#monte carlo simulatio
+def monte_carlo(sizee,industry):
     #get weight 100000 * 10 
     #sum = 1 and value>0
-    matrix_weight = np.random.dirichlet(np.ones(10),size=(100000))
+    matrix_weight = np.random.rand(industry,sizee)
+    matrix_weight = matrix_weight/matrix_weight.sum(axis=0)
+    
     # print(matrix_weight, "\n")
-    df_matrix = pd.DataFrame(matrix_weight)
-    df_matrix.columns = [df_monthly_returns.columns[1:11]]
-    df_monthly_returns_np = df_monthly_returns.drop(['Date'], axis=1)
-    df_monthly_returns2 = df_monthly_returns_np.mean()
-    df_monthly_returns2_np = df_monthly_returns2.to_numpy()
-    df_monthly_returns2_np = np.transpose(df_monthly_returns2_np)
-    df_monthly_std2 = df_monthly_returns_np.std()
-    df_monthly_std2_np = df_monthly_std2.to_numpy()
-    df_monthly_std2_np = np.transpose(df_monthly_std2_np)    
-    
-    #weight x returns
-    np_weight_return = matrix_weight*df_monthly_returns2_np
-    df_np_weight_return = pd.DataFrame(data = np_weight_return)
-    df_np_weight_return_pt = pd.DataFrame() 
-    df_np_weight_std_pt = pd.DataFrame()     
-    df_np_weight_return_pt['portfolio_mean'] = df_np_weight_return.sum(axis=1)   
-    df_np_weight_std_pt['portfolio_std'] = df_np_weight_return.sum(axis=1)      
-    np_weight_return_portfolio = df_np_weight_return_pt['portfolio_mean'].to_numpy()                                                           
-    df_np_weight_return.to_csv('df_np_weight_return.csv')
-    
-    #std * returns
-    np_std_return = matrix_weight*df_monthly_std2_np  
-    df_np_std_return = pd.DataFrame(data = np_std_return)
-    #test
-    df_np_std_return['std_portfolio'] = np_std_return.max(axis=1)    
-    df_np_std_return_portfolio = df_np_std_return['std_portfolio'].to_numpy()
-    df_np_std_return.to_csv('df_np_std_return.csv')
-    
-    plt.scatter(np.array(df_np_std_return_portfolio), np.array(np_weight_return_portfolio), color='green')
-    
-    # Add labels
-    plt.xlabel("Standard Deviation")
-    plt.ylabel("Expected Returns")
-    # Display
+    df_monthly_returns_np = df_monthly_returns.drop(['Date'], axis=1)    
+    df_monthly_returns_numpy_mean = df_monthly_returns_np.mean().to_numpy()
+    returns_matrix = np.matmul(matrix_weight.T,df_monthly_returns_numpy_mean)
+        
+    df_returns_matrix = pd.DataFrame(data = returns_matrix)
+    df_returns_matrix_mean = df_returns_matrix.sum(axis=1)
+    df_returns_matrix_mean = df_returns_matrix_mean.to_numpy()
+    df_cov_ri = df_monthly_returns_np.cov()
+    df_cov_ri = df_cov_ri.to_numpy()
+         
+    wprimexv = np.dot(matrix_weight.T[None,:],df_cov_ri).reshape(sizee,industry)
+    pt_var = (wprimexv * matrix_weight.T[None,:].reshape(sizee,industry)).sum(axis=1)  
+ 
+    pt_std = np.sqrt(pt_var)
+    plt.scatter(pt_std, returns_matrix)
+    plt.rcParams.update({'figure.figsize':(10,8), 'figure.dpi':100})
+    plt.title('Monte Carlo Simulation')
+    plt.xlabel('standard deviation')
+    plt.ylabel('Expected Returns')
     plt.show()
     
+    return True
 
-    
-    return df_matrix
-     
-monte_carlo()    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+monte_carlo(100000,10)
 
