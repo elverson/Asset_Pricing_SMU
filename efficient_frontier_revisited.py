@@ -7,25 +7,18 @@ Created on Thu Sep  1 14:51:26 2022
 
 import warnings
 warnings.simplefilter("ignore", UserWarning)
-import glob
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.dates import DateFormatter, MinuteLocator
-import datetime
-from datetime import date
-from datetime import timedelta
 import pandas as pd
 from tabulate import tabulate
 from numpy.linalg import inv
 import math 
-from sklearn.linear_model import LinearRegression
-import random
 
 # create dataframe
-df_monthly_returns = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
-df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Market_Portfolio.xlsx')
-#df_monthly_returns = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Industry_Portfolios.xlsx') 
-#df_market = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Market_Portfolio.xlsx') 
+#df_monthly_returns = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Industry_Portfolios.xlsx')
+#df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson5\\Market_Portfolio.xlsx')
+df_monthly_returns = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Industry_Portfolios.xlsx') 
+df_market = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\smu\\New folder\\Asset_Pricing_SMU\\Market_Portfolio.xlsx') 
 df = df_monthly_returns.sub(df_market['Market'],axis=0)
 d = []
 d_without_date = []
@@ -71,7 +64,7 @@ delta = np.matmul(delta, weight)
 rmv = alpha/delta
 
 #riskfree_Rate
-rf_rate = 0.13
+rf_rate = 0.0
     
     
 #tangency portfolio
@@ -101,7 +94,7 @@ def weight_portfolio():
 
 def print_all(sharpe_ratio,weight_final,vector_mean,df_cov,df_table_mean_std):    
     print("information ratio:", sharpe_ratio, "\n" )
-    print("weight of optimal portfolio", "\n")
+    print("weight of tangency portfolio", "\n")
     print(weight_final[1], "\n")
     #question1: vector of mean and covariance
     print("covariance:", "\n")
@@ -116,7 +109,7 @@ def plot_all():
             yield start
             start += step
 
-    #risk-free line(PAGE 25 lecture)
+    # #risk-free line(PAGE 25 lecture)
     yaxis2 = []
     xaxis2 = []
     for x2 in my_range(rf_rate, 0.11, 0.005):
@@ -125,39 +118,44 @@ def plot_all():
         xaxis2 += [stdplot2]
         yaxis2 += [x2]
     plt.plot(xaxis2,yaxis2,label="Tangent Line")
-    plt.xlabel("Tracking Error")
-    plt.ylabel("Expected Monthly Deviation ")
+    plt.xlabel("Monthly Tracking Error")
+    plt.ylabel("Expected Monthly return Deviation ")
+    plt.yticks(np.arange(0, max(yaxis2), 0.005))
     plt.legend()   
 
 
     yaxis = []
     xaxis = []
-    for x in my_range(0, 0.11, 0.005):
+    for x in my_range(0, 0.105, 0.005):
         stdplot = (1/delta) + (delta/(zelta*delta-(alpha*alpha))) * (x - (alpha/delta))**2
         stdplot = math.sqrt(stdplot)
         xaxis += [stdplot]
         yaxis += [x]
-    plt.plot(xaxis,yaxis,label="minimum variance frontier")
-    plt.xlabel("Tracking Error")
-    plt.ylabel("Expected Monthly Deviation ")
-    plt.xlim(0,0.25)
+    plt.plot(xaxis,yaxis,label="minimum tracking error frontier")
+    plt.xlabel("Monthly Tracking Error")
+    plt.ylabel("Expected Monthly return Deviation ")
+    plt.yticks(np.arange(0, max(yaxis), 0.005))
+    plt.xlim(0.0,0.25)
     plt.legend()           
 
 #print_all(sharpe_ratio(Rtg,rf_rate,Stg),weight_portfolio(),vector_mean,df_cov,df_table_mean_std)
 #plot_all()
 
-#df.to_excel (r'C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson2\\std_mean.xlsx')
-#df.to_excel (r'C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\python\\asset_pricing_project\\std_mean.xlsx')
 
-
-
-#monte carlo simulatio
-def monte_carlo(sizee,industry):
+def monte_carlo_weight(sizee,industry):
     #get weight 100000 * 10 
     #sum = 1 and value>0
     matrix_weight = np.random.rand(industry,sizee)
     matrix_weight = matrix_weight/matrix_weight.sum(axis=0)
     
+    matrix_weight_dd = np.divide(1,matrix_weight)
+    matrix_weight_dd = matrix_weight_dd/matrix_weight_dd.sum(axis=0)
+    
+    return matrix_weight, matrix_weight_dd
+
+
+#monte carlo simulatio
+def monte_carlo(sizee,industry,matrix_weight):    
     # print(matrix_weight, "\n")
     df_monthly_returns_np = df_monthly_returns.drop(['Date'], axis=1)    
     df_monthly_returns_numpy_mean = df_monthly_returns_np.mean().to_numpy()
@@ -174,7 +172,6 @@ def monte_carlo(sizee,industry):
  
     pt_std = np.sqrt(pt_var)
     plt.scatter(pt_std, returns_matrix)
-    plt.rcParams.update({'figure.figsize':(10,8), 'figure.dpi':100})
     plt.title('Monte Carlo Simulation')
     plt.xlabel('standard deviation')
     plt.ylabel('Expected Returns')
@@ -182,5 +179,5 @@ def monte_carlo(sizee,industry):
     
     return True
 
-monte_carlo(100000,10)
-
+monte_carlo(100000,10,monte_carlo_weight(100000,10)[0])
+#monte_carlo(100000,10,monte_carlo_weight(100000,10)[1])
