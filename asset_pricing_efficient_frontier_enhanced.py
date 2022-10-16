@@ -119,7 +119,7 @@ def plot_all():
     #minimum variance frontier(page 11 and 13 lecture)
     yaxis = []
     xaxis = []
-    for x in my_range(0, 2.1, 0.1):
+    for x in my_range(0, 2.1, 201):
         stdplot = (1/delta) + (delta/(zelta*delta-(alpha*alpha))) * (x - (alpha/delta))**2
         stdplot = math.sqrt(stdplot)
         xaxis += [stdplot]
