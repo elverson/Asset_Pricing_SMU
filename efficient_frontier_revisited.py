@@ -179,5 +179,5 @@ def monte_carlo(sizee,industry,matrix_weight):
     
     return True
 
-monte_carlo(100000,10,monte_carlo_weight(100000,10)[0])
-#monte_carlo(100000,10,monte_carlo_weight(100000,10)[1])
+#monte_carlo(100000,10,monte_carlo_weight(100000,10)[0])
+monte_carlo(100000,10,monte_carlo_weight(100000,10)[1])
