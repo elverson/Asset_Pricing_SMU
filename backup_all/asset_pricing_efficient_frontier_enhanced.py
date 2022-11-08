@@ -77,55 +77,28 @@ df = pd.DataFrame()
 df = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\github\\Asset_Pricing_SMU\\Industry_Portfolios.xlsx')
 #df = pd.read_excel('C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\python\\asset_pricing_project\\project2\\Industry_Portfolios.xlsx') 
 d = []
-
-#exclude date from industry portfolio
 for p in df:
     if "Date" not in p and "date" not in p:
         d.append((p, df[p].mean(), df[p].std()))
 df_table_mean_std = pd.DataFrame(d, columns=('industry', 'mean_return', 'standard_deviation'))
 
-"""
-page 4
-covariance matrix of returns against each of the industries
-Let V be n × n covariance matrix of returns, which consists of
-variances on diagonal and covariances on off-diagonal
-inverse covariance
-"""
+
+
+#covariance
 df_cov = df.iloc[: , 1:]
 df_cov = df_cov.cov()
-df_cov_inverse = inv(df_cov)
-
-"""
-page 4
-Let R = (R1, . . . , Rn)′ be n × 1 vector of expected returns
-vector mean
-R be nx1 vector of expected returns.
-Total of 10 mean returns. Which means it is the returns of each column.
-transpose of returns
-"""
+#vector mean
 vector_mean = df_table_mean_std[["mean_return"]].to_numpy() 
+# transpose of returns
 vector_mean_transpose = np.transpose(vector_mean)
-
-"""
-page 5
-weight to represent investor health allocated on each industries
-1 here means they are equally weighted.
-transpose the weight
-
-"""
+#inverse covariance
+df_cov_inverse = inv(df_cov)
+#e
 weight = [1, 1, 1, 1, 1, 1, 1, 1, 1,1]
+#e transpose
 weight_transpose = np.transpose(weight)
 
 
-"""
-page 11:
-formula for alpha
-α = R′V−1e; 
-formula for zelta
-ζ = R′V−1R; 
-formula for delta
-δ = e′V−1e
-"""
 #alpha
 alpha = np.matmul(vector_mean_transpose, df_cov_inverse)
 alpha = np.matmul(alpha, weight)
@@ -138,43 +111,22 @@ zelta = np.matmul(zelta, vector_mean)
 delta = np.matmul(weight_transpose, df_cov_inverse)
 delta = np.matmul(delta, weight)
 
-
 #rmv mid line
-"""
-page 13:
-Rmv = α/δ is mean return for global minimum-variance portfolio
-"""
 rmv = alpha/delta
-  
-"""
-page 28:
-Rtg − Rf = (αRf − ζ) /  (δRf − α)  - Rf
-Rtg = Rtg[0][0] to get exact value instead of an array.
 
-page 29:
-σtg = − [(ζ − 2αRf + δR2)^0.5 / (δ (Rf − Rmv ))]
 
-"""
+    
+    
 #tangency portfolio
 Rtg = (alpha * rf_rate - zelta)/(delta*rf_rate - alpha)
 Rtg = Rtg[0][0]
 Stg = -((zelta-2*alpha*rf_rate+delta*rf_rate*rf_rate)**0.5)/(delta*(rf_rate-rmv))
 
-"""
-page 30:
-(Rtg − Rf) / σtg
 
-"""
 #sharpe ratio
 def sharpe_ratio(Rtg,rf_rate,Stg):
     sharpe_ratio = (Rtg - rf_rate)/Stg
     return sharpe_ratio
-
-
-"""
-
-
-"""
 
 #weight of optimal portfolio
 def weight_portfolio():
@@ -265,8 +217,8 @@ def plot_all():
     # plt.title("efficient frontier")
     # plt.legend()      
 
-#print_all(sharpe_ratio(Rtg,rf_rate,Stg),weight_portfolio(),vector_mean,df_cov,df_table_mean_std)
-#plot_all()
+print_all(sharpe_ratio(Rtg,rf_rate,Stg),weight_portfolio(),vector_mean,df_cov,df_table_mean_std)
+plot_all()
 
 #df.to_excel (r'C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\lesson2\\std_mean.xlsx')
 #df.to_excel (r'C:\\Users\\XuebinLi\\OneDrive - Linden Shore LLC\\Desktop\\python\\asset_pricing_project\\std_mean.xlsx')

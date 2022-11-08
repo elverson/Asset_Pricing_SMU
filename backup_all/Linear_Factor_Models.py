@@ -74,57 +74,30 @@ df_riskfactors = pd.read_excel(
     'C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset Pricing\\github\\Asset_Pricing_SMU\\Risk_Factors.xlsx')
 
 #CAPM BETA from lesson 3
-#capm_beta = CAPM.market_model(CAPM.df_industry,CAPM.df_market,CAPM.rf_rate)
+capm_beta = CAPM.market_model(CAPM.df_industry,CAPM.df_market,CAPM.rf_rate)
 
 def std_mean_industries():
     # excess returns for 10 portfolios
     df_industries_excess_returns = df_industries.sub(
         df_riskfactors['Rf'].values, axis=0)
-    
     # Remove date in columns
     if('Date' in df_industries_excess_returns.columns or 'date' in df_industries_excess_returns):
         df_industries_excess_returns = df_industries_excess_returns.drop('Date', axis=1)
-    
-    """    
-    excess_returns : set df_industries_excess_returns to excess_returns. This is individual cell industries 
-    return minus rf
-    mean_returns_industries_excess_returns : mean of excess returns. individually subtract rf values from each cell of industries
-    and then take mean of each column
-    mean_returns_industries_excess_returns : convert mean returns of industries to 2d arrays
-    """
+    # mean of excess returns  
     excess_returns = df_industries_excess_returns
     mean_returns_industries_excess_returns = df_industries_excess_returns.mean()
+    # convert mean returns of industries to 2d arrays
     mean_returns_industries_excess_returns = np.array(
         [mean_returns_industries_excess_returns.tolist()])
-    
-    """
-    std_returns_industries_excess_returns : mean excess std of industries. Return minus rf and take std()
-    std_returns_industries_excess_returns: convert std to 2d arrays    
-    """
+    # std of industries
     std_returns_industries_excess_returns = df_industries_excess_returns.std()
+    # convert std to 2d arrays
     std_returns_industries_excess_returns = np.array(
         [std_returns_industries_excess_returns.tolist()])
-    
-    """
-    [0] = mean returns of industries return minus rf. 10 values
-    [1] = std of industries minus rf. 10 values
-    [2] = all values in industries data frame of returns minus rf
-    """
     return mean_returns_industries_excess_returns, std_returns_industries_excess_returns, excess_returns
 
 
 def excess_market_return(df_riskfactors):
-    
-    """
-    excess_market_returns = mean of rm-rf of riskfactor excel sheet. This is market premium
-    excess_market_returns_without_mean = all rm-rf values of the column without taking mean. 
-    number of values is number of rows.
-    excess_market_returns_without_rf_rate = this is just the market return without minus riskfree rate
-    excess_market_returns = convert excess_market_returns to 2d array
-    SMB = set df_riskfactors['SMB'] as all SMB values in column
-    HML = set df_riskfactors['HML'] as all HML values in column
-    """
-    
     excess_market_returns = df_riskfactors['Rm-Rf'].mean()
     excess_market_returns_without_mean = df_riskfactors['Rm-Rf']
     excess_market_returns_without_rf_rate = df_riskfactors['Rm-Rf'] + df_riskfactors['Rf']
@@ -132,16 +105,6 @@ def excess_market_return(df_riskfactors):
     excess_market_returns = np.array([[excess_market_returns]])
     SMB = df_riskfactors['SMB']
     HML = df_riskfactors['HML']
-    
-    """
-    [0] = mean of rm-rf of riskfactor excel sheet. This is market premium
-    [1] = all rm-rf values of the column without taking mean in column 
-    [2] = all SMB values in column
-    [3] = all HML values in column
-    [4] = this is just the market return without minus riskfree rate and did not take mean. 
-    All values in column
-    
-    """
     return excess_market_returns, excess_market_returns_without_mean, SMB, HML, excess_market_returns_without_rf_rate
 
 
@@ -172,7 +135,7 @@ def jenson_alpha(mean_returns_industries_excess_returns,excess_market_return):
     mean_returns_industries_excess_returns = pd.DataFrame(mean_returns_industries_excess_returns)
     excess_market_return = pd.DataFrame(excess_market_return)
     reg = LinearRegression().fit(excess_market_return, mean_returns_industries_excess_returns)
-    #beta = reg.coef_
+    beta = reg.coef_
     alpha = reg.intercept_
     # print(alpha.ndim)
     alpha = alpha.reshape(10,1)

@@ -83,35 +83,23 @@ df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset 
 #declaration
 #risk-free rate
 #rf_rate = AP_project1.rf_rate
-
-#set default risk-free rate
 rf_rate = 0.13
 
 
+
 def market_model(data_industry,data_mkt,rf):   
-    
     #first part is capm model    
-    #getting portfolio risk premium
+    #portfolio risk premium
     RP_minus_RF = df_industry- rf_rate
-    
     #market risk premium
     RM_minus_RF = df_market - rf_rate
-    
     #regress portfolio premium over market premium
-    #market premium on x-axis and industry premium on y-axis
-    #it is the measuring how portfolio premium is related to market premium
     reg = LinearRegression().fit(RM_minus_RF, RP_minus_RF)
-    
     #industry beta which is the slope
-    #As the beta of market go up, we see if the beta of industries go up or go down.
     industry_beta = reg.coef_
-    
     #intercept which is the alpha
-    #This is the extra y value from 0. If intercept is 0.4 then the alpha is 0.4.
-    #alpha is the intercept of y axis
     industry_alpha = reg.intercept_
-    
-    #create table of alpha and beta of 10 industries. and print table
+    #create table of alpha and beta of 10 industries.
     industry_market_coefficient = pd.DataFrame(np.concatenate((industry_alpha.reshape(10,1),industry_beta.reshape(10,1)),axis=1),
                                                index = data_industry.columns,
                                                columns = ['intercept coefficient','slope coefficient'] )
@@ -120,39 +108,26 @@ def market_model(data_industry,data_mkt,rf):
     print(tabulate(industry_market_coefficient, headers = 'keys', tablefmt = 'psql'))
 
     #this part is security market line
-    
     #average return of each of the 10 industrial portfolios
     mean_industry_returns = df_industry.mean()
-    
     #average return of the market returns
     mean_market_returns = df_market.mean()
-    
-    #average returns of portfolio plus market
+    #total average returns of portfolio and market
     mean_industry_plus_mkt_returns = np.concatenate((mean_industry_returns, mean_market_returns),axis=0)
-    
-    #add one more market index to the industry index
-    #set as dataframe and print
+    #print mean returns of industry and market
     index_mkt_industry = data_industry.columns.insert(10, 'Market')
     mean_industry_plus_mkt_returns_print = pd.DataFrame(mean_industry_plus_mkt_returns.reshape(11,1), index = index_mkt_industry, 
                                                         columns=['Mean Returns'])
     print(tabulate(mean_industry_plus_mkt_returns_print,headers='keys',tablefmt='psql'))
-    
-    #set market beta= 1
+    #market beta= 1
     market_beta = [[1]]
-    
-    #set 10 industry beta + 1 market beta
-    mean_industry_plus_market_beta = np.concatenate((industry_beta, market_beta),axis=0)  
-    
+    #10 industry beta + 1 market beta
+    mean_industry_plus_market_beta = np.concatenate((industry_beta, market_beta),axis=0)    
     #regress average portfolio + market returns over average portfolio + market betas
-    #it is measuring how industry return and market return is correlated with industry and market beta.
     reg_sml = LinearRegression().fit(mean_industry_plus_market_beta, mean_industry_plus_mkt_returns)
-    
-    #beta of sml which is the returns of industries and market over beta of industries and market
-    #beta is the slope
+    #beta of sml
     reg_sml_coefficient_slope = reg_sml.coef_
-    
-    #alpha of sml which is the extra returns of market + industries over beta.
-    #alpha is the intercept of y axis.
+    #alpha of sml
     reg_sml_intercept = reg_sml.intercept_    
     print("sml intecept coefficient:",reg_sml_intercept)
     print("sml slope coefficient:",reg_sml_coefficient_slope[0])
@@ -179,7 +154,7 @@ def market_model(data_industry,data_mkt,rf):
 
     
     
-#market_model(df_industry,df_market,rf_rate)
+market_model(df_industry,df_market,rf_rate)
 
 
 
