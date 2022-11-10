@@ -11,40 +11,6 @@ Session 4: Linear Factor Models
 
 Performance Measurement
 
-Risk_Factors.xlsx contains monthly observations of the risk-free rate and the three Fama–French risk factors, 
-all expressed as a percentage. These observations cover the ten-year period from Jan 2004 through Dec 2013.
-
-→ Using excess returns for the ten industry portfolios, calculate the following performance metrics:
-
-Sharpe ratio
-Sortino ratio (using risk-free rate as target)
-Treynor ratio (using CAPM β)
-Jensen's α
-Three-factor α
-The sample semi-variance can be estimated as:
-
-
- where Ri is return on industry portfolio and Rf is risk-free rate.
-
-→ Create a table showing the performance metrics for the ten industry portfolios.
-
-→ Plot your results as a bar chart for each performance metric.
-
-→ Briefly explain the economic significance of each of the three performance ratios (but not α's).
-
-Economic significance:
-
-Sharpe ratio represents risk premium per unit of total risk:
-Includes idiosyncratic risk, which penalises individual investments and non-diversified portfolios
-Implicitly assumes normal returns, so cannot distinguish between return distributions 
-with same variance but different skewness
-
-Sortino ratio represents risk premium per unit of downside risk: can distinguish 
-between asymmetric return distributions with same variance but different skewness
-
-Treynor ratio represents risk premium per unit of market risk: ignores idiosyncratic risk
-6as well as other types of systematic risk
-
 """
 
 import math
@@ -86,10 +52,13 @@ def std_mean_industries():
         df_industries_excess_returns = df_industries_excess_returns.drop('Date', axis=1)
     
     """    
-    excess_returns : set df_industries_excess_returns to excess_returns. This is individual cell industries 
-    return minus rf
-    mean_returns_industries_excess_returns : mean of excess returns. individually subtract rf values from each cell of industries
+    excess_returns : set df_industries_excess_returns to excess_returns. 
+    This is individual cell industries return minus rf
+    
+    mean_returns_industries_excess_returns : mean of excess returns. 
+    individually subtract rf values from each cell of industries
     and then take mean of each column
+    
     mean_returns_industries_excess_returns : convert mean returns of industries to 2d arrays
     """
     excess_returns = df_industries_excess_returns
@@ -98,7 +67,9 @@ def std_mean_industries():
         [mean_returns_industries_excess_returns.tolist()])
     
     """
-    std_returns_industries_excess_returns : mean excess std of industries. Return minus rf and take std()
+    std_returns_industries_excess_returns : mean excess std of industries. 
+    Return minus rf and take std()
+    
     std_returns_industries_excess_returns: convert std to 2d arrays    
     """
     std_returns_industries_excess_returns = df_industries_excess_returns.std()
@@ -120,7 +91,7 @@ def excess_market_return(df_riskfactors):
     excess_market_returns_without_mean = all rm-rf values of the column without taking mean. 
     number of values is number of rows.
     excess_market_returns_without_rf_rate = this is just the market return without minus riskfree rate
-    excess_market_returns = convert excess_market_returns to 2d array
+    excess_market_returns = convert mean of rm-rf of riskfactor excel sheet to 2d array
     SMB = set df_riskfactors['SMB'] as all SMB values in column
     HML = set df_riskfactors['HML'] as all HML values in column
     """
@@ -132,6 +103,7 @@ def excess_market_return(df_riskfactors):
     excess_market_returns = np.array([[excess_market_returns]])
     SMB = df_riskfactors['SMB']
     HML = df_riskfactors['HML']
+    "“UMD under page 7 of lecture slides”"
     
     """
     [0] = mean of rm-rf of riskfactor excel sheet. This is market premium
@@ -145,28 +117,59 @@ def excess_market_return(df_riskfactors):
     return excess_market_returns, excess_market_returns_without_mean, SMB, HML, excess_market_returns_without_rf_rate
 
 
+    """
+    page 10:
+    Si = E(˜Ri −Rf) / sqrt(Var(˜Ri − Rf))    
+        
+    sharpe
+    [0] = excel of industries portfolio
+    [1] = excel of riskfactors
+    [2] = mean of excess returns. individually subtract rf values from each cell of industries
+    [3] = mean excess std of industries. Return minus rf and take std()
+    
+    sharpe_ratio_industries = mean of 10 industries over std of 10 industries. rf rate is minus of already.
+
+    """
+
 def sharpe_ratio(df_industries, df_riskfactors, mean_returns_industries_excess_returns, std_returns_industries_excess_returns):
     sharpe_ratio_industries = mean_returns_industries_excess_returns / std_returns_industries_excess_returns
     sharpe_ratio_industries = sharpe_ratio_industries.reshape(10,1)
     return sharpe_ratio_industries
 
 
+    """
+    Page 14 and page 15:
+    Sti = E(˜Ri − ˜Rt) / sqrt(SV (˜Ri;˜Rt))
+    
+    sortino
+    [0] = This is individual cell industries return minus rf all values
+    [1] = all rm-rf values of the column without taking mean. 
+    
+    downside risk = individual cell industries return minus rf. if negative take value 0. 
+    if not use the current value. Square it and lastly take mean . total 10 industry values.
+    
+    sortino = all industries return minus rf all values divide by square root of downside risk and
+    take mean. Total 10 values.
+    
+    """
 
-
-def downside_risk(mean_returns_industries_excess_returns,excess_market_return):
-    min_ri_minus_rt = mean_returns_industries_excess_returns - excess_market_return
-    min_ri_minus_rt[min_ri_minus_rt>=0] = 0
-    downside_risk = np.minimum(0,min_ri_minus_rt)**2
-    return downside_risk
-
-
-#wrong answers
 def sortino_ratio(rp_minus_rf,rm_minus_rf):
     down_risk = np.mean(np.minimum(rp_minus_rf,0)**2)
     sortino = np.mean(rp_minus_rf)/np.sqrt(down_risk)
     sortino = np.array(sortino)
     return sortino
 
+
+    """
+    page 12:
+    αi = E(˜Ri − Rf)− βi * E(˜Rm − Rf)
+    
+    (Ri - rf) is from all cell values in industires excel file
+    (rm -rf) is all values in the column from riskfactor excel
+    
+    Regress all values of (rI - rf) over all values of (rm - rf)
+    and get the alpha which is the intercept.    
+    """
 
 def jenson_alpha(mean_returns_industries_excess_returns,excess_market_return):
     mean_returns_industries_excess_returns = pd.DataFrame(mean_returns_industries_excess_returns)
@@ -178,8 +181,20 @@ def jenson_alpha(mean_returns_industries_excess_returns,excess_market_return):
     alpha = alpha.reshape(10,1)
     return alpha
 
-def three_factor_alpha(market_risk,SMB,HML,portfolio_excess_returns):
-    
+
+    """
+    page 3:
+    Eugene Fama and Kenneth French use three-factor model
+    with risk factors for market risk, size risk, and value risk:  
+    Size risk = SMB
+    value risk = HMB
+    market risk = market_risk
+    Regress all this factors against the portfolio premium which is all values
+    of (ri - rf)    
+    lastly get alpha value
+    """
+
+def three_factor_alpha(market_risk,SMB,HML,portfolio_excess_returns): 
     market_risk = pd.DataFrame(market_risk)
     SMB = pd.DataFrame(SMB)
     HML = pd.DataFrame(HML)
@@ -192,6 +207,17 @@ def three_factor_alpha(market_risk,SMB,HML,portfolio_excess_returns):
     alpha = reg.intercept_
     alpha = alpha.reshape(10,1)
     return alpha
+
+    
+    """
+    page 11:
+    Ti =E(˜Ri − Rf) / βi
+    excess_market_return = all values of rm-rf
+    excess_returns = all values of ri - rf
+    regress all values of rm-rf over all values of ri - rf to get beta of industries returns
+    Treynor ratio = all values of ri - rf divide by its market beta
+    """
+
 
 def treynor_ratio(excess_market_return,excess_returns):
     all_port_excess_returns = pd.DataFrame(excess_returns)

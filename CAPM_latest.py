@@ -8,43 +8,17 @@ Created on Thu Sep 15 17:27:24 2022
 """
 Session 3: Capital Asset Pricing Model (CAPM)
 
-Market_Portfolio.xlsx contains monthly nominal (net) returns for the market portfolio, 
-expressed as a percentage. These returns cover the ten-year period from Jan 2004 through Dec 2013. 
-Assume that the (net) risk-free rate is 0.13% per month.
+market model:
+Regress to find out the relationship of beta and alpha of 
+10 industries return premium over market premium.
 
-Market Model
-
-Estimate the intercept coefficient (α) and slope coefficient (β) for each of the 
-ten industry portfolio using the market model: regress the monthly excess returns for each 
-industry portfolio on the monthly excess returns for the market portfolio.
-
-→ Create a table showing the intercept and slope coefficients for the ten industry portfolios.
-
-→ Briefly explain the economic significance of the intercept and slope coefficients.
-
-Security Market Line (SML)
-
-Calculate the mean monthly return for each of the ten industry portfolios, as well as the market portfolio.
-
-Regress the mean monthly returns of the ten industry portfolios and the 
-market portfolio on the corresponding β's. This will give you the 
-intercept and slope coefficients for the SML. 
-(Warning: the results may be very different from what you would expect!)
-
-→ Use the estimated intercept and slope coefficients for the SML to plot the SML in the range of β from zero to two on the horizontal axis. Also plot the positions of the ten industry portfolios and the market portfolio. (You are NOT required to label the individual portfolios.)
-
-→ Briefly explain the economic significance of the SML.
-
-
-
-Economic significance:
-
-Intercept coefficient from market model regression represents CAPM pricing error.
-
-Slope coefficient from market model regression represents degree of exposure to market risk.
-
-SML shows that all appropriately-priced assets have same Treynor ratio 
-⇒ assets that lie above SML are underpriced, while assets that lie below SML are overpriced.
+SML model:
+Use the beta get from earlier to regress against the market beta.
+The market beta is just 1. This gives us a new beta and alpha.
+Plot the SML with respect to the value of market beta.
+Y axis value = beta of industries * market beta(from 0 -2) 
++ alpha which is the intercet
+    
 """
 
 
@@ -88,15 +62,34 @@ df_market = pd.read_excel('C:\\Users\\lixue\\OneDrive\\Desktop\\smu\\MQF\\Asset 
 rf_rate = 0.13
 
 
+
 def market_model(data_industry,data_mkt,rf):   
+        
+    """
+    page 7:
+    Rp − Rf = w′ (R − Rf*e)
+    = w′⃗β (Rm − Rf ) = βp (Rm − Rf )
+    βp = w′⃗
+    
+    """
     
     #first part is capm model    
-    #getting portfolio risk premium
+    #getting portfolio risk premium   
+    
     RP_minus_RF = df_industry- rf_rate
     
     #market risk premium
     RM_minus_RF = df_market - rf_rate
     
+    """
+    page 18: market model
+    ˜Ri − Rf = αi + βi(˜Rm − Rf)+ ˜ϵi    
+    
+    Market model is one-factor linear regression model with
+    (excess) asset return as dependent variable and (excess)
+    market return as explanatory variable
+    
+    """
     #regress portfolio premium over market premium
     #market premium on x-axis and industry premium on y-axis
     #it is the measuring how portfolio premium is related to market premium
@@ -179,7 +172,7 @@ def market_model(data_industry,data_mkt,rf):
 
     
     
-#market_model(df_industry,df_market,rf_rate)
+market_model(df_industry,df_market,rf_rate)
 
 
 

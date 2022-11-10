@@ -9,40 +9,24 @@ Created on Sun Oct 16 09:21:01 2022
 
 Session 6: Stochastic Discount Factor
 
-Suppose that consumption growth has lognormal distribution with the possibility of rare disasters:
-
-Here ε is a standard normal random variable, while ν is an independent random variable that has value of either zero (with probability of 98.3%) or ln(0.65) (with probability of 1.7%).
-
-Simulate ε with (at least) 104 random draws from a standard normal distribution, and simulate ν with (at least) 104 random draws from a standard uniform distribution.
-
-Use the simulated distribution of consumption growth to find the simulated distribution of the pricing kernel for power utility:
-
-
-Repeat this process for all values of γ in the range from 1 to 4, in increments of 0.1 (or less). (Note that you can reuse the same simulated distribution of consumption growth for all values of γ). 
-
-→ Calculate μM and σM for each value of γ, and plot σM/μM (on the vertical axis) vs γ (on the horizontal axis).
-
-→ Find the smallest value of γ (in your data) for which σM/μM > 0.4, so that the Hansen–Jagannathan bound is satisfied. Explain the economic significance of this result.
-
-Economic Significance:
-
-Based on H–J bound, volatility ratio of pricing kernel must exceed Sharpe ratio of 0.4 for market portfolio.
-
-For investor with power utility of consumption, volatility of pricing kernel will be proportional to investor's coefficient of relative risk aversion ⇒ H–J bound becomes lower bound on investor's coefficient of relative risk aversion.
-
-After adding rare disasters to consumption growth, H–J bound is satisfied for reasonably low degree of relative risk aversion, so no equity premium puzzle
-
-
 
 """
-
-
 import warnings
 warnings.simplefilter("ignore", UserWarning)
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from tabulate import tabulate
+
+
+"""
+v = Use random generator to create 100,000 values from 0 to 1
+e = Use standard normal random generator to create 100,000 values. 
+if v values is less than 0.017 then then set it to log(0.65)
+but if v values is greater than 0.017, set it to 0
+
+"""
+
 
 def monte_carlo_weight(column,rows):
     #get weight 100000 * 10 
@@ -71,17 +55,45 @@ def plot_all():
     plt.show()
 
 
+
 e =  monte_carlo_weight(100000,1)[1]
 v = monte_carlo_weight(100000,1)[0]  
 #ln_g = 0.02+0.02e+v
 #df_ln_g = 0.02 + e*0.02 + v
+
+
+"""
+page 20:
+g value = exp(0.02 + 0.02 * e + v)
+v is probability of rare disaster. 98.3%  to be 0 and 1.7% to be ln0.65
+e is mean of consumption growth
+"""
+
 df_ln_g = np.exp(0.02 + 0.02*e + v)
 ln_g = df_ln_g.to_numpy()
+
+
+"""
+np.arrange to evenly space values from 1 to 4.1
+change the shape to 1 row and 31 columns
+These values will be used for x-axis
+"""
 
 y = np.arange(1,4.1,0.1)
 y_index = y
 y_df = pd.DataFrame(data = y,index=y)
 y = y.reshape(1,31)
+
+
+"""
+m is pricing kernal. It is using g which is the comsuption growth 
+take to the power of y which is values from 1 to 4.1 and multiple by 0.99.
+m has 100,000 * 30 values(x axis values).
+mean_m = the mean each column of values. total 30 columns. So mean_m has 30 values
+std_m the std each column of values. total 30 columns. So std_m has 30 values
+m_std_divide_mean = divde std by mean
+smallest_1 = smallest value for which σM/μM > 0.4
+"""
 
 #M = 0.99*df_ln_g**(-Y)
 g_from_ln_g = df_ln_g

@@ -5,70 +5,9 @@ Created on Tue Oct 25 16:08:29 2022
 @author: XuebinLi
 
 """
-
-
-
-
 """
 Session 8 :Behavioural Finance
 
-Consider a Barberis, Huang and Santos (2001) economy with the 
-following parameter choices for the investor's utility function:
-
-
-Consumption growth has lognormal distribution:
-
-where ε is a standard normal random variable. 
-Simulate the distribution for consumption growth with (at least) 104 random draws for ε. 
-
-The risk-free rate is constant at 1.0303 per year. 
-Let x be one plus the dividend yield for the market portfolio:
- 
-and define the error term:
-
-
-where utility from recent financial gain or loss is given by:
-
-Calculate the equilibrium values of x for b0 in the range from 0 to 10, 
-in increments of 0.1 (or less), using bisection search:
-
-Set x– = 1 and x+ = 1.1, and use the simulated distribution 
-of consumption growth to confirm that e(x–) < 0 and e(x+) > 0 ⇒ 
-equilibrium value of x must lie between x– and x+.
-
-Set x0 = 0.5*(x– + x+), and use the simulated distribution of 
-consumption growth to calculate e(x0).
-
-If |e(x0)| < 10–5, then x0 is (close enough to) the equilibrium value of x.
-
-Otherwise, if e(x0) < 0, then the equilibrium value of x 
-lies between x0 and x+, so repeat the procedure with x– = x0.
-
-Otherwise, if e(x0) > 0, then the equilibrium value of x lies 
-between x– and x0, so repeat the procedure with x+ = x0.
-→ Use the equilibrium value of x to calculate the price-dividend ratio for the market portfolio:
-
- 
- 
-and plot the price-dividend ratio (on the vertical axis) vs b0. 
-
-→ Use the equilibrium value of x to calculate the expected market return:
-
-
-and plot the equity premium (on the vertical axis) vs b0. 
-
-→ Briefly explain the economic significance of the investor's utility 
-function for recent financial gain or loss [ν(R)], as well as the economic significance of b0 and λ.
-
-Economic significance:
-
-Utility function for recent financial gain or loss is based on prospect theory, 
-where financial gain or loss is measured relative to reference level based on risk-free rate
-
-Investor is more sensitive to financial loss, and λ determines degree of loss aversion
-
-b0 determines amount of emphasis that investor puts on utility from recent 
-financial gain or loss, compared to utility of consumption
 
 """
 
@@ -79,16 +18,54 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from tabulate import tabulate
 
+
+"""
+e = create 10,000 random draws of standard normal
+put this 10,000 into consumption formula(g = np.exp(0.02+0.02*e))
+b0 = use linspace to create 101 values from 0 to 1
+v = 10,000 zeros
+x_answer = 101 zeros
+set sigma, gamma and lamda as 0.99, 1, 1
+"""
+
+
 random_draws = 10000
 intervals = 101
 sigma, gamma, lamda = 0.99, 1, 2
 rf_rate = 1.0303
 e = np.random.standard_normal(random_draws)
 g = np.exp(0.02+0.02*e)
+print(g.shape)
 b0 = np.linspace(0,10,intervals)
 v = np.zeros(random_draws)
 x_answer = np.zeros(intervals)
 xa = 0
+
+
+"""
+1st 
+for-loop x from 0 to 101
+
+set x- as nan, x+ as nan and x0 as 1.05, which means for every 
+values of for-loop x. This value will reset at nan,nan and 1.05
+
+    2nd
+    while loop inside for loop from 0 to 101
+    for each value of x, if absolute value of x0(mid of x+ and x-) is more than  
+    0.00001, we set x0(mid values) to 0.5 of (x+ + x-)
+
+        3rd
+        for loop i and j in dictionary_x items
+        i refers to x-,x+ and x0
+        j refers to np.nan, np.nan and 1.05. of cause these values will chance
+
+            4th
+            for loop values in consumption growth g. from index k starting
+            with 0 to 10000. If g[k] >= riskfree rate then set v = r - 1.0303
+            if not set v = 2(r-1.0303)
+
+"""
+
 
 for x in range(intervals):
     dictionary_x = {"x-":1,"x+":1.1}
@@ -101,7 +78,9 @@ for x in range(intervals):
                     v[k] = j*g[k]-rf_rate
                 else:
                     v[k] = 2*(j*g[k]-rf_rate)
-            ex[i] = sigma*b0[x]*np.mean(v)+sigma*j-gamma
+            #ex[i] = sigma*b0[x]*np.mean(v)+sigma*j-gamma
+            #page 10
+            ex[i] = sigma*b0[x]*np.mean(v)+sigma*j*np.mean(np.power(g,1-gamma))-gamma
         
         if ex[i]>0:
             dictionary_x["x+"] = dictionary_x["x0"]
